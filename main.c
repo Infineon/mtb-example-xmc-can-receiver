@@ -3,7 +3,7 @@
 *
 * Description: This is the source code for the XMC MCU: CAN Receiver example
 *              for ModusToolbox. The CAN node 1 is configured to receive a CAN 
-*              message over the CAN bus. Successful message receiption is 
+*              message over the CAN bus. Successful message reception is
 *              indicated by toggling the USER LED1. The USER LED2 is updated based
 *              on the message received in the CAN frame.
 *
@@ -44,36 +44,20 @@
 #include "cy_utils.h"
 #include "xmc_can.h"
 #include "xmc_scu.h"
-#include "retarget_io.h"
+#include "cy_retarget_io.h"
+#include "platform.h"
 #include <stdio.h>
 
 /*******************************************************************************
 * Defines
 *******************************************************************************/
-#ifdef TARGET_KIT_XMC14_BOOT_001
 
-#define CAN_FREQUENCY            48000000                 /* Frequency of the CAN module in Hz */
-#define CAN_SERVICE_REQUEST      3U                       /* Interrupt output line of multiCAN module */
-#define CAN_CLOCK_SOURCE         XMC_CAN_CANCLKSRC_MCLK   /* CAN module clock source - Peripheral Clock*/
-#define IRQ_NUMBER               IRQ7_IRQn                /* Interrupt number */
-#define CAN_IRQ_HANDLER          IRQ7_Handler             /* CAN Interrupt Handler */
+/* Define macro to enable/disable printing of debug messages */
+#define ENABLE_XMC_DEBUG_PRINT              (0)
 
-/* Configure CAN TX GPIO mode */
-#define CAN_TX_MODE              XMC_GPIO_MODE_OUTPUT_PUSH_PULL | XMC_GPIO_MODE_OUTPUT_ALT9
-
-#endif
-
-#ifdef TARGET_KIT_XMC47_RELAX_V1
-
-#define CAN_FREQUENCY            144000000                /* Frequency of the CAN module in Hz */
-#define CAN_SERVICE_REQUEST      7U                       /* Interrupt output line of multiCAN module */
-#define CAN_CLOCK_SOURCE         XMC_CAN_CANCLKSRC_FPERI  /* CAN module clock source  - Peripheral Clock*/
-#define IRQ_NUMBER               CAN0_7_IRQn              /* Interrupt number */
-#define CAN_IRQ_HANDLER          CAN0_7_IRQHandler        /* CAN Interrupt Handler */
-
-/* Configure CAN TX GPIO mode */
-#define CAN_TX_MODE              XMC_GPIO_MODE_OUTPUT_PUSH_PULL | XMC_GPIO_MODE_OUTPUT_ALT2
-
+/* Define macro to set the loop count before printing debug messages */
+#if ENABLE_XMC_DEBUG_PRINT
+#define DEBUG_LOOP_COUNT_MAX                (1U)
 #endif
 
 #define BAUD_RATE                500000    /* CAN Node baud rate in bps */
@@ -85,7 +69,6 @@
 #define DATA_LENGTH_BYTES        1         /* CAN data Length. Range: 0 - 8 */
 #define NODE1                    1         /* Node1 */
 #define MESSAGE_OBJECT           0         /* Message Object 0 */
-
 
 /*******************************************************************************
 * Variables
@@ -168,8 +151,13 @@ int main(void)
     {
         CY_ASSERT(0);
     }
-    /* Initialize printf retarget */
-    retarget_io_init();
+
+    /* Initialize retarget-io to use the debug UART port */
+    cy_retarget_io_init(CYBSP_DEBUG_UART_HW);
+
+    #if ENABLE_XMC_DEBUG_PRINT
+    printf("Initialization done\r\n");
+    #endif
 
     printf("\r\n*********************************\r\n");
     printf("CAN Receiver Example project\n\r");
@@ -179,26 +167,26 @@ int main(void)
     XMC_CAN_InitEx(CAN, CAN_CLOCK_SOURCE, CAN_FREQUENCY);
 
     /* Configure CAN Node baud rate*/
-    XMC_CAN_NODE_NominalBitTimeConfigureEx(CAN_NODE1, &baud);
+    XMC_CAN_NODE_NominalBitTimeConfigureEx(CAN_NODE, &baud);
 
     /* NODE 1 initialization */
     /* Allow to change the configuration of the CAN node 1 */
-    XMC_CAN_NODE_EnableConfigurationChange(CAN_NODE1);
+    XMC_CAN_NODE_EnableConfigurationChange(CAN_NODE);
 
     /* Disable CAN node participation in CAN traffic */
-    XMC_CAN_NODE_SetInitBit(CAN_NODE1);
+    XMC_CAN_NODE_SetInitBit(CAN_NODE);
 
     /* Set CAN input receive pin */
-    XMC_CAN_NODE_SetReceiveInput(CAN_NODE1, XMC_CAN_NODE_RECEIVE_INPUT_RXDCC);
+    XMC_CAN_NODE_SetReceiveInput(CAN_NODE, XMC_CAN_NODE_RECEIVE_INPUT);
 
     /* Connect CAN TX pin to the CAN Node 1 */
-    XMC_GPIO_SetMode(CYBSP_CAN_TX_PORT, CYBSP_CAN_TX_PIN, CAN_TX_MODE);
+    XMC_GPIO_SetMode(CYBSP_CAN_TX_PORT, CYBSP_CAN_TX_PIN, CAN_TX_PIN_MODE);
 
     /* Initializes CAN Message Object 0 */
     XMC_CAN_MO_Config(&CAN_message);
 
     /* Allocate Message object 0 to Node 1 */
-    XMC_CAN_AllocateMOtoNodeList(CAN, NODE1, MESSAGE_OBJECT);
+    XMC_CAN_AllocateMOtoNodeList(CAN, NODE_NUMBER, MESSAGE_OBJECT);
 
     /* Enable receive interrupt for message */
     XMC_CAN_MO_EnableEvent(&CAN_message, XMC_CAN_MO_EVENT_RECEIVE);
@@ -206,7 +194,7 @@ int main(void)
     /* Configure Message Object event node pointer with service_request number */
     XMC_CAN_MO_SetEventNodePointer(&CAN_message, XMC_CAN_MO_POINTER_EVENT_RECEIVE, CAN_SERVICE_REQUEST);
 
-#ifdef TARGET_KIT_XMC14_BOOT_001
+#if(UC_device == XMC14)
     /* Interrupt Multiplexer configuration */
     XMC_SCU_SetInterruptControl(IRQ_NUMBER, XMC_SCU_IRQCTRL_CAN0_SR3_IRQ7);
 #endif
@@ -215,11 +203,10 @@ int main(void)
     NVIC_EnableIRQ(IRQ_NUMBER);
 
     /* Lock the configuration of CAN node 1 */
-    XMC_CAN_NODE_DisableConfigurationChange(CAN_NODE1);
+    XMC_CAN_NODE_DisableConfigurationChange(CAN_NODE);
 
     /* Enable CAN node 1 participation in CAN traffic */
-    XMC_CAN_NODE_ResetInitBit(CAN_NODE1);
-
+    XMC_CAN_NODE_ResetInitBit(CAN_NODE);
     for(;;)
     {
         /* CAN Frame is received */
@@ -228,6 +215,8 @@ int main(void)
             /* Print the received frame in serial terminal */
             printf("Received CAN frame\n\r");
             printf( "Button State: %x\n\r", CAN_message.can_data_byte[0]);
+
+#ifdef CYBSP_USER_LED2_PIN
 
             /* Update USER LED2 based on command received */
             if(CAN_message.can_data_byte[0] == 0)
@@ -238,7 +227,7 @@ int main(void)
             {
                 XMC_GPIO_SetOutputHigh(CYBSP_USER_LED2_PORT, CYBSP_USER_LED2_PIN);
             }
-
+#endif
             /* Reset flag */
             frame_received = false;
         }

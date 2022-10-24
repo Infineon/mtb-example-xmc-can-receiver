@@ -1,59 +1,72 @@
-# XMC MCU: CAN Receiver
+# XMC&trade; MCU: CAN receiver
 
-This example demonstrates how to receive CAN messages over the CAN bus using XMC&trade; MCU. This example can be used together with the [CAN Transmitter](https://github.com/cypresssemiconductorco/mtb-example-xmc-can-transmitter) example running on another board.
+This code example demonstrates how to receive CAN messages over the CAN bus using XMC&trade; MCU. This code example can be used together with the [CAN transmitter](https://github.com/Infineon/mtb-example-xmc-can-transmitter) example running on another board.
+
+[View this README on GitHub.](https://github.com/Infineon/mtb-example-xmc-can-receiver)
+
+[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzI2MjciLCJTcGVjIE51bWJlciI6IjAwMi0zMjYyNyIsIkRvYyBUaXRsZSI6IlhNQyZ0cmFkZTsgTUNVOiBDQU4gcmVjZWl2ZXIiLCJyaWQiOiJicnZpIiwiRG9jIHZlcnNpb24iOiIyLjAuMCIsIkRvYyBMYW5ndWFnZSI6IkVuZ2xpc2giLCJEb2MgRGl2aXNpb24iOiJNQ0QiLCJEb2MgQlUiOiJJQ1ciLCJEb2MgRmFtaWx5IjoiTi9BIn0=)
+
 
 ## Requirements
 
-- [ModusToolbox&trade; software](https://www.cypress.com/products/modustoolbox-software-environment) v2.3
+- [ModusToolbox&trade; software](https://www.infineon.com/modustoolbox) v3.0
 - [SEGGER J-Link software](https://www.segger.com/downloads/jlink/#J-LinkSoftwareAndDocumentationPack)
-- Programming Language: C
-- Associated Parts: All [XMC™ MCU](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/) parts
+- Programming language: C
+- Associated parts: All [XMC&trade; MCU](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/) parts
 
-## Supported Toolchains (make variable 'TOOLCHAIN')
+## Supported toolchains (make variable 'TOOLCHAIN')
 
-- GNU Arm® Embedded Compiler v9.3.1 (`GCC_ARM`) - Default value of `TOOLCHAIN`
+- GNU Arm&reg; embedded compiler v10.3.1 (`GCC_ARM`) - Default value of `TOOLCHAIN`
 
-## Supported Kits (make variable 'TARGET')
+## Supported kits (make variable 'TARGET')
 
-- [XMC1400 Boot Kit](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc14_boot_001/) (`KIT_XMC14_BOOT_001`) - Default value of `TARGET`
-- [XMC4700 Relax Kit](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc47_relax_v1/) (`KIT_XMC47_RELAX_V1`)
+- [XMC1400 boot kit](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc14_boot_001/) (`KIT_XMC14_BOOT_001`) - Default value of `TARGET`
+- [XMC4700 relax kit](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc47_relax_v1/) (`KIT_XMC47_RELAX_V1`)
 
-## Hardware Setup
+## Hardware setup
 
 This example uses the board's default configuration. See the kit user guide to ensure that the board is configured correctly.
 
-**Note:** The CAN bus lines (CANH and CANL signals) of the onboard transceiver in the KIT_XMC47_RELAX_V1 kit are not terminated by a 120-ohm resistor and needs to be terminated externally. Add a 120-ohm termination resistor between the CANH and CANL pins (X2.33 and X2.35 respectively) for the KIT_XMC47_RELAX_V1 kit.
+Two XMC MCU boards are required to test this code example: one for the [XMC&trade; MCU: CAN receiver](https://github.com/Infineon/mtb-example-xmc-can-receiver) application and the other for the [XMC&trade; MCU: CAN transmitter](https://github.com/Infineon/mtb-example-xmc-can-transmitter) application. See [Supported kits](#supported-kits-make-variable-target)for kits supported by this code example.
 
-Two XMC boards are required to test this code example: one for the application XMC MCU: CAN Transmitter and another for the application [XMC MCU: CAN Transmitter](https://github.com/cypresssemiconductorco/mtb-example-xmc-can-transmitter). See [Supported Kits](#supported-kits) for the list of kits supported by this code example.
+Connect the CANH and CANL of one board to the CANH and CANL of the other board respectively to establish CAN communication between the TX and the RX node. Also connect the ground pin of both boards together.
 
-Connect the CANH and CANL of one board to the CANH and CANL of the other board respectively to establish CAN communication between the transmitter and the receiver node. Also, connect the Ground pin of both the boards together.
+**Table 1. CAN board connections**
 
-| Development Board | Signal Name | Pin Header on the Board |
+| Development board | Signal name | Pin header in board |
 | -- | -- | -- |
 | KIT_XMC14_BOOT_001 | CANH | J102.H |
-| KIT_XMC14_BOOT_001 | CANL | J102.L |
+| | CANL | J102.L |
 | KIT_XMC47_RELAX_V1 | CANH | X2.33 |
-| KIT_XMC47_RELAX_V1 | CANL | X2.35 |
+| | CANL | X2.35 |
 
-**Figure 1. Hardware Configuration**
+**Notes:**
+
+- The CAN bus lines (CANH and CANL signals) of the on-board transceiver in the KIT_XMC47_RELAX_V1 kit are not terminated by a 120 Ω resistor and must be terminated externally. Add a 120 Ω termination resistor between the CANH and CANL pins for proper operation of CAN as shown in **Figure 1**.
+
+**Figure 1. Hardware setup**
 
 <img src="images/hardware_setup.jpg" alt="Hardware Setup" width="700"/>
 
-## Software Setup
+
+## Software setup
 
 Install a terminal emulator if you don't have one. Instructions in this document use [Tera Term](https://ttssh2.osdn.jp/index.html.en).
 
-## Using the Code Example
+This example requires no additional software or tools.
+
+
+## Using the code example
 
 Create the project and open it using one of the following:
 
-<details open><summary><b>In Eclipse IDE for ModusToolbox</b></summary>
+<details><summary><b>In Eclipse IDE for ModusToolbox&trade; software</b></summary>
 
-1. Click the **New Application** link in the **Quick Panel** (or, use **File** > **New** > **ModusToolbox Application**). This launches the [Project Creator](http://www.cypress.com/ModusToolboxProjectCreator) tool.
+1. Click the **New Application** link in the **Quick Panel** (or, use **File** > **New** > **ModusToolbox&trade; Application**). This launches the [Project Creator](https://www.infineon.com/ModusToolboxProjectCreator) tool.
 
 2. Pick a kit supported by the code example from the list shown in the **Project Creator - Choose Board Support Package (BSP)** dialog.
 
-   When you select a supported kit, the example is reconfigured automatically to work with the kit. To work with a different supported kit later, use the [Library Manager](https://www.cypress.com/ModusToolboxLibraryManager) to choose the BSP for the supported kit. You can use the Library Manager to select or update the BSP and firmware libraries used in this application. To access the Library Manager, click the link from the **Quick Panel**.
+   When you select a supported kit, the example is reconfigured automatically to work with the kit. To work with a different supported kit later, use the [Library Manager](https://www.infineon.com/ModusToolboxLibraryManager) to choose the BSP for the supported kit. You can use the Library Manager to select or update the BSP and firmware libraries used in this application. To access the Library Manager, click the link from the **Quick Panel**.
 
    You can also just start the application creation process again and select a different kit.
 
@@ -61,47 +74,52 @@ Create the project and open it using one of the following:
 
 3. In the **Project Creator - Select Application** dialog, choose the example by enabling the checkbox.
 
-4. Optionally, change the suggested **New Application Name**.
+4. (Optional) Change the suggested **New Application Name**.
 
-5. Enter the local path in the **Application(s) Root Path** field to indicate where the application needs to be created.
-
-   Applications that can share libraries can be placed in the same root path.
+5. The **Application(s) Root Path** defaults to the Eclipse workspace which is usually the desired location for the application. If you want to store the application in a different location, you can change the *Application(s) Root Path* value. Applications that share libraries should be in the same root path.
 
 6. Click **Create** to complete the application creation process.
 
-For more details, see the [Eclipse IDE for ModusToolbox User Guide](https://www.cypress.com/MTBEclipseIDEUserGuide) (locally available at *{ModusToolbox install directory}/ide_{version}/docs/mt_ide_user_guide.pdf*).
+For more details, see the [Eclipse IDE for ModusToolbox&trade; software user guide](https://www.infineon.com/MTBEclipseIDEUserGuide) (locally available at *{ModusToolbox&trade; software install directory}/ide_{version}/docs/mt_ide_user_guide.pdf*).
 
 </details>
 
-<details open><summary><b>In Command-line Interface (CLI)</b></summary>
+<details><summary><b>In command-line interface (CLI)</b></summary>
 
-ModusToolbox provides the Project Creator as both a GUI tool and a command line tool to easily create one or more ModusToolbox applications. See the "Project Creator Tools" section of the [ModusToolbox User Guide](https://www.cypress.com/ModusToolboxUserGuide) for more details.
+ModusToolbox&trade; software provides the Project Creator as both a GUI tool and the command line tool, "project-creator-cli". The CLI tool can be used to create applications from a CLI terminal or from within batch files or shell scripts. This tool is available in the *{ModusToolbox&trade; software install directory}/tools_{version}/project-creator/* directory.
 
-Alternatively, you can manually create the application using the following steps:
+Use a CLI terminal to invoke the "project-creator-cli" tool. On Windows, use the command line "modus-shell" program provided in the ModusToolbox&trade; software installation instead of a standard Windows command-line application. This shell provides access to all ModusToolbox&trade; software tools. You can access it by typing `modus-shell` in the search box in the Windows menu. In Linux and macOS, you can use any terminal application.
 
-1. Download and unzip this repository onto your local machine, or clone the repository.
+The "project-creator-cli" tool has the following arguments:
 
-2. Open a CLI terminal and navigate to the application folder.
+Argument | Description | Required/optional
+---------|-------------|-----------
+`--board-id` | Defined in the `<id>` field of the [BSP](https://github.com/Infineon?q=bsp-manifest&type=&language=&sort=) manifest | Required
+`--app-id`   | Defined in the `<id>` field of the [CE](https://github.com/Infineon?q=ce-manifest&type=&language=&sort=) manifest | Required
+`--target-dir`| Specify the directory in which the application is to be created if you prefer not to use the default current working directory | Optional
+`--user-app-name`| Specify the name of the application if you prefer to have a name other than the example's default name | Optional
 
-   On Linux and macOS, you can use any terminal application. On Windows, open the **modus-shell** app from the Start menu.
+<br>
 
-   **Note:** The cloned application contains a default BSP file (*TARGET_xxx.mtb*) in the *deps* folder. Use the [Library Manager](https://www.cypress.com/ModusToolboxLibraryManager) (`make modlibs` command) to select and download a different BSP file, if required. If the selected kit does not have the required resources or is not [supported](#supported-kits-make-variable-target), the application may not work.
+The following example will clone the [XMC&trade; MCU: CAN receiver](https://github.com/Infineon/mtb-example-xmc-can-receiver) application with the desired name "CANReceiver" configured for the *CY8CKIT-062-WIFI-BT* BSP into the specified working directory, *C:/mtb_projects*:
 
-3. Import the required libraries by executing the `make getlibs` command.
+   ```
+   project-creator-cli --board-id KIT_XMC14_BOOT_001 --app-id mtb-example-xmc-can-receiver --user-app-name CANReceiver --target-dir "C:/mtb_projects"
+   ```
 
-Various CLI tools include a `-h` option that prints help information to the terminal screen about that tool. For more details, see the [ModusToolbox User Guide](https://www.cypress.com/ModusToolboxUserGuide) (locally available at *{ModusToolbox install directory}/docs_{version}/mtb_user_guide.pdf*).
+**Note:** The project-creator-cli tool uses the `git clone` and `make getlibs` commands to fetch the repository and import the required libraries. For details, see the "Project creator tools" section of the [ModusToolbox&trade; software user guide](https://www.infineon.com/ModusToolboxUserGuide) (locally available at *{ModusToolbox&trade; software install directory}/docs_{version}/mtb_user_guide.pdf*).
 
 </details>
 
-<details open><summary><b>In Third-party IDEs</b></summary>
+<details open><summary><b>In third-party IDEs</b></summary>
 
-**Note:** Only VS Code is supported.
+**Note:** Only VS code is supported.
 
-1. Follow the instructions from the **In Command-line Interface (CLI)** section to create the application, and import the libraries using the `make getlibs` command.
+1. Follow the instructions from the **In command-line interface (CLI)** section to create the application, and import the libraries using the `make getlibs` command.
 
 2. Export the application to a supported IDE using the `make <ide>` command.
 
-   For a list of supported IDEs and more details, see the "Exporting to IDEs" section of the [ModusToolbox User Guide](https://www.cypress.com/ModusToolboxUserGuide) (locally available at *{ModusToolbox install directory}/docs_{version}/mtb_user_guide.pdf*).
+   For a list of supported IDEs and more details, see the "Exporting to IDEs" section of the [ModusToolbox&trade; software user guide](https://www.infineon.com/ModusToolboxUserGuide) (locally available at *{ModusToolbox&trade; software install directory}/docs_{version}/mtb_user_guide.pdf*).
 
 3. Follow the instructions displayed in the terminal to create or import the application as an IDE project.
 
@@ -111,106 +129,98 @@ Various CLI tools include a `-h` option that prints help information to the term
 
 1. Connect the board to your PC using a micro-USB cable through the debug USB connector.
 
-2. Program the board using Eclipse IDE for ModusToolbox:
+2. Program the board using Eclipse IDE for ModusToolbox&trade; software:
 
    1. Select the application project in the Project Explorer.
 
    2. In the **Quick Panel**, scroll down, and click **\<Application Name> Program (JLink)**.
 
-3. Connect the second board running the CAN Transmitter example as described in [Hardware Setup](#hardware-setup) section.
+3. Connect the second board running the CAN transmitter example as described in the [Hardware setup](#hardware-setup) section.
 
-4. Confirm that USER LED1 of the Receiver board toggles, indicating that the CAN messages are received successfully.
+4. Confirm that User LED1 of the receiver board toggles, indicating that the CAN messages are received successfully.
 
-5. Press the User button on Transmitter board and confirm that USER LED2 on the Receiver board is updated accordingly.
+5. Press the user button (**BUTTON1**) on the transmitter board and confirm that the User LED2 on the receiver board is updated accordingly.
 
-6. To view the received CAN message in a serial terminal, open a terminal program and select the **JLink CDC COM port**. Set the serial port parameters to 8N1 and 115200 baud. Confirm that the received CAN message is displayed on the serial terminal as shown below:
+6. To view the received CAN message in a serial terminal, open a terminal program and select the **JLink CDC COM port**. Set the serial port parameters to 8N1 and 115200 baud. Confirm that the received CAN message is displayed in the serial terminal as shown in **Figure 2**.
 
-**Figure 2. Log Messages**
+**Figure 2. Log messages**
 
 ![](images/serial_terminal_log.jpg)
 
 ## Debugging
 
-You can debug the example to step through the code. In the IDE, use the **\<Application Name> Debug (JLink)** configuration in the **Quick Panel**. For more details, see the "Program and Debug" section in the [Eclipse IDE for ModusToolbox User Guide](https://www.cypress.com/MTBEclipseIDEUserGuide).
+You can debug the example to step through the code. In the IDE, use the **\<Application Name> Debug (JLink)** configuration in the **Quick Panel**. For more details, see the "Program and debug" section in the [Eclipse IDE for ModusToolbox&trade; software user guide](https://www.infineon.com/MTBEclipseIDEUserGuide).
 
-## Design and Implementation
+## Design and implementation
 
-In this code example, CAN Node 1 is linked with message object 0 (MO0), which is configured to receive a single byte over the CAN bus. A successful reception of the message is indicated by toggling User LED1. The incoming CAN messages can be seen in the serial terminal using UART communication. The status of the USER LED2 is updated based on the incoming CAN message.
+In this code example, the CAN Node 1 is linked with message object 0 (MO0), which is configured to receive a single byte over the CAN bus. A successful reception of the message is indicated by toggling user LED1. The incoming CAN messages can be seen in the serial terminal using UART communication. The status of the user LED2 is updated based on the incoming CAN message.
 
-**Figure 3. Firmware Flow**
+**Figure 3. Firmware flow**
 
 ![](images/firmware_flow.jpg)
 
-### Resources and Settings
+### Resources and settings
 
-The project uses a custom *design.modus* file because the following settings were modified in the default *design.modus* file:
+The project uses a custom *design.modus* file since the following settings were modified in the default *design.modus* file.
 
-**Figure 4. CAN RX Pin Settings**
+**Figure 4. CAN RX pin settings**
 
 ![](images/can_rx_settings.jpg)
 
-**Figure 5. CAN TX Pin Settings**
+**Figure 5. CAN TX pin settings**
 
 ![](images/can_tx_settings.jpg)
 
-**Figure 6. USIC (UART) Settings**
+**Figure 6. USIC (UART) settings**
 
 ![](images/uart_settings.jpg)
 
-**Figure 7. USIC Interrupt Settings**
+**Figure 7. USIC interrupt settings**
 
 ![](images/interrupt_settings.jpg)
 
-**Figure 8. UART TX Pin Settings**
+**Figure 8. UART TX pin settings**
 
 ![](images/uart_tx_settings.jpg)
 
-**Figure 9. UART RX Pin Settings**
+**Figure 9. UART RX pin settings**
 
 ![](images/uart_rx_settings.jpg)
 
-## Related Resources
+## Related resources
 
-| Kit Guides                                            |                                                              |
-| :----------------------------------------------------------- | :----------------------------------------------------------- |
-| [XMC4700/XMC4800 Relax Kit Series-V1](https://www.infineon.com/dgdl/Infineon-Board_User_Manual_XMC4700_XMC4800_Relax_Kit_Series-UM-v01_02-EN.pdf?fileId=5546d46250cc1fdf01513f8e052d07fc) – Board User‘s Manual | Describes the schematic and hardware of the XMC4700/XMC4800 Relax Kit Series-V1, equipped with an Arm® Cortex®-M4 based XMC™ Microcontroller from Infineon Technologies AG. |
-| [XMC1400 Boot Kit](https://www.infineon.com/dgdl/Infineon-Board_Users_Manual_XMC1400_Boot_Kit.pdf-UM-v01_00-EN.pdf?fileId=5546d462525dbac401527815f9a073fd) – Board User‘s Manual | Describes the schematic and hardware of XMC1400 Boot Kit for application code development on the XMC1404-Q064X0200 device.|
-| **Code Examples**                                            |                                                              |
-| [Using ModusToolbox](https://github.com/cypresssemiconductorco/Code-Examples-for-ModusToolbox-Software) |
-| **Device Documentation**                                     |                                                              |
-| [XMC1000 Family Datasheets](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/32-bit-xmc1000-industrial-microcontroller-arm-cortex-m0/#document-group-myInfineon-49) | [XMC1000 Family Technical Reference Manuals](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/32-bit-xmc1000-industrial-microcontroller-arm-cortex-m0/#document-group-myInfineon-44) |
-| [XMC4000 Family Datasheets](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/32-bit-xmc4000-industrial-microcontroller-arm-cortex-m4/#document-group-myInfineon-49) | [XMC4000 Family Technical Reference Manuals](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/32-bit-xmc4000-industrial-microcontroller-arm-cortex-m4/#document-group-myInfineon-44) |
-| **Development Kits**                                         | Buy at www.infineon.com                                       |
-| [KIT_XMC14_BOOT_001](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc14_boot_001/) Boot Kit XMC1400 | [KIT_XMC47_RELAX_V1](https://www.infineon.com/cms/en/product/evaluation-boards/kit_xmc47_relax_v1/) XMC4700 Relax Kit |
-| **Libraries**                                                 |                                                              |
-| XMC Peripheral Library (XMCLib) and docs  | [mtb-xmclib-cat3](https://github.com/cypresssemiconductorco/mtb-xmclib-cat3) on GitHub |
-| **Tools**                                                    |                                                              |
-| [Eclipse IDE for ModusToolbox](https://www.cypress.com/modustoolbox)     | The cross-platform, Eclipse-based IDE for IoT designers that supports application configuration and development targeting converged MCU and wireless systems.             |
+Resources  | Links
+-----------|----------------------------------
+Code examples  | [Using ModusToolbox&trade; software](https://github.com/Infineon/Code-Examples-for-ModusToolbox-Software) on GitHub
+Device documentation | [XMC1000 family datasheets](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/32-bit-xmc1000-industrial-microcontroller-arm-cortex-m0/#document-group-myInfineon-49) <br> [XMC1000 family technical reference manuals](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/32-bit-xmc1000-industrial-microcontroller-arm-cortex-m0/#document-group-myInfineon-44) <br> [XMC4000 family datasheets](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/32-bit-xmc4000-industrial-microcontroller-arm-cortex-m4/#document-group-myInfineon-49) <br> [XMC4000 family technical reference manuals](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/32-bit-xmc4000-industrial-microcontroller-arm-cortex-m4/#document-group-myInfineon-44)
+Development kits | [XMC&trade; MCU eval boards](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/#boards)
+Libraries on GitHub  | [mtb-xmclib-cat3](https://github.com/Infineon/mtb-xmclib-cat3) – XMC&trade; MCU peripheral library (XMCLib)
+Tools  | [Eclipse IDE for ModusToolbox&trade; software](https://www.infineon.com/modustoolbox) – ModusToolbox&trade; software is a collection of easy-to-use software and tools enabling rapid development with Infineon MCUs, covering applications from embedded sense and control to wireless and cloud-connected systems using AIROC&trade; Wi-Fi and Bluetooth® connectivity devices.
 
-## Other Resources
+## Other resources
 
 Infineon provides a wealth of data at www.infineon.com to help you select the right device, and quickly and effectively integrate it into your design.
 
-For XMC MCU devices, see [32-bit XMC™ Industrial Microcontroller based on Arm® Cortex®-M](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/).
+For XMC&trade; MCU devices, see [32-bit XMC™ Industrial microcontroller based on Arm® Cortex®-M](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/).
 
-## Document History
+## Document history
 
-Document Title: *CE232627* - *XMC MCU: CAN Receiver*
+Document title: *CE232627* - *XMC&trade; MCU: CAN receiver*
 
-| Version | Description of Change |
+| Version | Description of change |
 | ------- | --------------------- |
 | 1.0.0   | New code example      |
+| 1.1.0   | Added support for new kits |
+| 2.0.0   | Updated to support ModusToolbox&trade; software v3.0, CE will not be backwards compatible with previous versions of ModusToolbox™ software. |
 ------
 
 All other trademarks or registered trademarks referenced herein are the property of their respective owners.
 
-![banner](images/ifx_logo_rgb.jpg)
-
-© 2021 Infineon Technologies AG
+© 2022 Infineon Technologies AG
 
 All Rights Reserved.
 
-### Legal Disclaimer
+### Legal disclaimer
 
 The information given in this document shall in no event be regarded as a guarantee of conditions or characteristics. With respect to any examples or hints given herein, any typical values stated herein and/or any information regarding the application of the device, Infineon Technologies hereby disclaims any and all warranties and liabilities of any kind, including without limitation, warranties of non-infringement of intellectual property rights of any third party.
 
